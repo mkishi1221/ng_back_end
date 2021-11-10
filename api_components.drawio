@@ -1,1 +1,55 @@
-<mxfile host="app.diagrams.net" modified="2021-11-10T18:57:49.868Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36 OPR/79.0.4143.50" version="14.5.7" etag="bgB_Bi1VNRbZVO-D6USd" type="github"><diagram id="ZpM0Sz4Mi2ifESKDexO0">UzV2zq1wL0osyPDNT0nNUTV2VTV2LsrPL4GwciucU3NyVI0MMlNUjV1UjYwMgFjVyA2HrCFY1qAgsSg1rwSLBiADYTaQg2Y1AA==</diagram></mxfile>
+<mxfile host="app.diagrams.net" modified="2021-11-10T19:53:36.466Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36 OPR/79.0.4143.50" etag="bouvlcJ9IXM98n-i3fDo" version="14.5.7" type="github">
+  <diagram id="ZpM0Sz4Mi2ifESKDexO0" name="Page-1">
+    <mxGraphModel dx="1382" dy="1877" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="g93GZ3gMBgw71EaX-ajG-1" value="Keyword collector (string words -&amp;gt; compressed)&lt;br&gt;&lt;ul&gt;&lt;li&gt;frontend only sends new keywords to api (comparing old and new input)&lt;/li&gt;&lt;li&gt;bulk as property&lt;/li&gt;&lt;ul&gt;&lt;li&gt;bulk triggers whole unification / filter / spacy process&lt;/li&gt;&lt;li&gt;non bulk just adds the keyword&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;perimeterSpacing=0;spacing=11;" vertex="1" parent="1">
+          <mxGeometry x="70" y="120" width="320" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="g93GZ3gMBgw71EaX-ajG-2" value="algorithm collector (list[string] identifiers)&lt;br&gt;&lt;ul&gt;&lt;li&gt;constructs new algorithms from identifiers and stores them in user db&lt;/li&gt;&lt;/ul&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;perimeterSpacing=0;spacing=11;" vertex="1" parent="1">
+          <mxGeometry x="70" y="580" width="320" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="g93GZ3gMBgw71EaX-ajG-3" value="user management&lt;br&gt;&lt;ul&gt;&lt;li&gt;for the prototype this component should just identify an user, allowing it to restore a session&lt;/li&gt;&lt;/ul&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;perimeterSpacing=0;spacing=11;" vertex="1" parent="1">
+          <mxGeometry x="490" y="-70" width="320" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="g93GZ3gMBgw71EaX-ajG-4" value="whitelister (string word)&lt;br&gt;&lt;ul&gt;&lt;li&gt;adds a keyword to whitelist&lt;/li&gt;&lt;/ul&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;perimeterSpacing=0;spacing=11;" vertex="1" parent="1">
+          <mxGeometry x="70" y="320" width="320" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="g93GZ3gMBgw71EaX-ajG-5" value="blacklister (string word)&lt;br&gt;&lt;ul&gt;&lt;li&gt;adds a keyword to blacklist&lt;/li&gt;&lt;/ul&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;perimeterSpacing=0;spacing=11;" vertex="1" parent="1">
+          <mxGeometry x="70" y="450" width="320" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="g93GZ3gMBgw71EaX-ajG-6" value="names distrbutor (websocket)&lt;br&gt;&lt;ul&gt;&lt;li&gt;sends name to client when updates available&lt;/li&gt;&lt;li&gt;receives unwanted names from client and registers those for succeeding updates&lt;/li&gt;&lt;/ul&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;perimeterSpacing=0;spacing=11;" vertex="1" parent="1">
+          <mxGeometry x="640" y="390" width="320" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="g93GZ3gMBgw71EaX-ajG-7" value="" style="endArrow=none;html=1;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="420" y="180" as="sourcePoint" />
+            <mxPoint x="480" y="180" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="g93GZ3gMBgw71EaX-ajG-8" value="" style="endArrow=none;html=1;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="420" y="650" as="sourcePoint" />
+            <mxPoint x="480" y="650" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="g93GZ3gMBgw71EaX-ajG-9" value="" style="endArrow=none;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" target="g93GZ3gMBgw71EaX-ajG-6">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="480" y="444.5" as="sourcePoint" />
+            <mxPoint x="540" y="444.5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="g93GZ3gMBgw71EaX-ajG-10" value="" style="endArrow=none;html=1;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="480" y="180" as="sourcePoint" />
+            <mxPoint x="480" y="650" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="g93GZ3gMBgw71EaX-ajG-11" value="Trigger updates" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="490" y="345" width="40" height="20" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
