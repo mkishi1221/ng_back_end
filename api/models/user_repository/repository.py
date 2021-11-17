@@ -26,6 +26,7 @@ class UserRepository:
     list_collection = user_cache_db.get_collection("lists")
     profile_collection = user_cache_db.get_collection("profiles")
     pricing_collection = user_cache_db.get_collection("pricing")
+    algorithm_collection = user_cache_db.get_collection("algorithms")
 
     # project config
     project = os.environ["PROJECT_NAME"]
@@ -70,6 +71,7 @@ class UserRepository:
                         "grey": [],
                         "white": [],
                         "short": [],
+                        "algorithms": []
                     }
                 },
                 upsert=True,
