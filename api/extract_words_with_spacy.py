@@ -26,7 +26,7 @@ def create_keyword(word, word_pos, word_lemma) -> Keyword:
     """
     keyword = re.sub(r"^\W+", "", word)
     keyword = re.sub(r"\W+$", "", keyword)
-    return Keyword(
+    res = Keyword(
         word,
         len(keyword),
         keyword.lower(),
@@ -34,6 +34,9 @@ def create_keyword(word, word_pos, word_lemma) -> Keyword:
         spacy_pos=word_pos,
         lemma=word_lemma,
     )
+    # fix for https://github.com/tiangolo/fastapi/issues/265
+    delattr(res, "__initialised__")
+    return res
 
 
 def extract_words_with_spacy(lines) -> List[Keyword]:

@@ -1,7 +1,11 @@
+from os import stat
+from api.models.algorithm import Algorithm
 from ...name import Name
 from ...keyword import Keyword
 from typing import List, Dict, Union
 from ...user_repository.repository import UserRepository
+from fastapi import status, Response
+import orjson as json
 
 
 class UserPreferenceMutations(UserRepository):
@@ -13,9 +17,7 @@ class UserPreferenceMutations(UserRepository):
 
     # region upserts
     @staticmethod
-    def _upsert_keyword_in_list(
-        list_entry: Union[Keyword, Name], list_id: str
-    ):
+    def _upsert_keyword_in_list(list_entry: Union[Keyword, Name], list_id: str):
         """
         General method to upsert (update or insert if not existent) a keyword in the lists document
         """
@@ -44,9 +46,14 @@ class UserPreferenceMutations(UserRepository):
 
         if not to_update:
             setattr(list_entry, "occurrence", 1)
-
+            to_upsert = list_entry.__dict__
+            try:
+                to_upsert.pop("__initialised__")
+            except:
+                pass  # pydantic didn't add __initialised__
             return UserRepository.list_collection.update_one(
-                {"project_id": UserRepository.project_id}, {"$addToSet": {list_id: list_entry.__dict__}}
+                {"project_id": UserRepository.project_id},
+                {"$addToSet": {list_id: to_upsert}},
             )
 
         else:
@@ -61,6 +68,22 @@ class UserPreferenceMutations(UserRepository):
                 },
                 {"$set": {f"{list_id}.$.occurrence": to_update["occurrence"]}},
             )
+
+    ## algorithms
+    @staticmethod
+    def upsert_algorithm(algorithm: Algorithm):
+        """
+        Method to upsert keyword in algorithm list of user
+        """
+        known_algorithms = UserPreferenceMutations.get_algorithms()
+        if algorithm in known_algorithms:
+            return Response(status_code=status.HTTP_409_CONFLICT)
+        UserRepository.list_collection.update_one(
+            {"project_id": UserRepository.project_id},
+            {"$addToSet": {"algorithms": algorithm.__dict__}},
+        )
+        known_algorithms.append(algorithm)
+        return known_algorithms
 
     ## blacklist
     @staticmethod
@@ -137,13 +160,31 @@ class UserPreferenceMutations(UserRepository):
     # endregion
 
     # region getters
+    ## algorithms
+    @staticmethod
+    def get_algorithms() -> List[Algorithm]:
+        """
+        Returns all algorithms in preference list of user
+        """
+        return Algorithm.schema().loads(
+            json.dumps(
+                UserPreferenceMutations.user_specific_preference_list()["algorithms"]
+            ),
+            many="True",
+        )
+
     ## blacklist
     @staticmethod
     def get_blacklisted() -> List[Keyword]:
         """
         Returns all keywords in the blacklist of current user
         """
-        return [Keyword(**word) for word in UserPreferenceMutations.user_specific_preference_list()["black"]]
+        return Keyword.schema().loads(
+            json.dumps(
+                UserPreferenceMutations.user_specific_preference_list()["black"]
+            ),
+            many=True,
+        )
 
     ## greylist
     @staticmethod
@@ -151,7 +192,10 @@ class UserPreferenceMutations(UserRepository):
         """
         Returns all keywords in the greylist of current user
         """
-        return [Keyword(**word) for word in UserPreferenceMutations.user_specific_preference_list()["grey"]]
+        return Keyword.schema().loads(
+            json.dumps(UserPreferenceMutations.user_specific_preference_list()["grey"]),
+            many=True,
+        )
 
     ## whitelist
     @staticmethod
@@ -159,7 +203,12 @@ class UserPreferenceMutations(UserRepository):
         """
         Returns all keywords in the whitelist of current user
         """
-        return [Keyword(**word) for word in UserPreferenceMutations.user_specific_preference_list()["white"]]
+        return Keyword.schema().loads(
+            json.dumps(
+                UserPreferenceMutations.user_specific_preference_list()["white"]
+            ),
+            many=True,
+        )
 
     ## shortlist
     @staticmethod
@@ -167,11 +216,15 @@ class UserPreferenceMutations(UserRepository):
         """
         Returns all names in the shortlist of current user
         """
+
         def remove_occurence(word: Dict):
             del word["occurrence"]
             return Name(**word)
-        
-        return [remove_occurence(word) for word in UserPreferenceMutations.user_specific_preference_list()["short"]]
+
+        return [
+            remove_occurence(word)
+            for word in UserPreferenceMutations.user_specific_preference_list()["short"]
+        ]
 
     # endregion
 

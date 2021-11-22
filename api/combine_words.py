@@ -1,28 +1,26 @@
-#!/usr/bin/env python3
-# -*- coding:utf-8 -*-
-from typing import List
+from .models.keyword import Keyword
 from .models.algorithm import Algorithm
 from .models.name import Name
 
 
-def combine_words(wordlist1: List[dict], wordlist_1_type: str, wordlist2: List[dict], wordlist_2_type: str, algorithm: Algorithm) -> List[Name]:
+def combine_words(wordlist1: list[Keyword], wordlist_1_type: str, wordlist2: list[Keyword], wordlist_2_type: str, algorithm: Algorithm) -> list[Name]:
 
     # Combine keywords from 2 keyword lists
     joint = algorithm.joint
     name_list: list[Name] = []
     for keyword_1_dict in wordlist1:
         if wordlist_1_type == 'prefix':
-            keyword_1 = keyword_1_dict['prefix']
+            keyword_1 = keyword_1_dict["prefix"]
             keyword_1_user_score = 'user: 2'
             keyword_1_wiki_score = 'wiki: 0'
             keyword_1_score = 2
             keyword_1_origin = 'dictionary'
         else:
-            keyword_1 = keyword_1_dict['keyword'].title()
-            keyword_1_user_score = 'user: ' + str(keyword_1_dict['keyword_user_score'])
-            keyword_1_wiki_score = 'wiki: ' + str(keyword_1_dict['keyword_wiki_score'])
-            keyword_1_score = keyword_1_dict['keyword_total_score']
-            keyword_1_origin = keyword_1_dict['origin']
+            keyword_1 = keyword_1_dict.keyword.title()
+            keyword_1_user_score = 'user: ' + str(keyword_1_dict.keyword_user_score)
+            keyword_1_wiki_score = 'wiki: ' + str(keyword_1_dict.keyword_wiki_score)
+            keyword_1_score = keyword_1_dict.keyword_total_score
+            keyword_1_origin = keyword_1_dict.origin
 
         for keyword_2_dict in wordlist2:
             if wordlist_2_type == 'suffix':
@@ -32,11 +30,11 @@ def combine_words(wordlist1: List[dict], wordlist_1_type: str, wordlist2: List[d
                 keyword_2_score = 2
                 keyword_2_origin = 'dictionary'
             else:
-                keyword_2 = keyword_2_dict['keyword'].title()
-                keyword_2_user_score = 'user: ' + str(keyword_2_dict['keyword_user_score'])
-                keyword_2_wiki_score = 'wiki: ' + str(keyword_2_dict['keyword_wiki_score'])
-                keyword_2_score = keyword_2_dict['keyword_total_score']
-                keyword_2_origin = keyword_2_dict['origin']
+                keyword_2 = keyword_2_dict.keyword.title()
+                keyword_2_user_score = 'user: ' + str(keyword_2_dict.keyword_user_score)
+                keyword_2_wiki_score = 'wiki: ' + str(keyword_2_dict.keyword_wiki_score)
+                keyword_2_score = keyword_2_dict.keyword_total_score
+                keyword_2_origin = keyword_2_dict.origin
 
             name = joint.join((keyword_1, keyword_2))
             domain = name.lower() + ".com"

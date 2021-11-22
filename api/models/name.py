@@ -1,7 +1,8 @@
 from typing import Tuple
+
+from api.models.keyword import Keyword
 from .algorithm import Algorithm
 from dataclasses import dataclass
-
 
 @dataclass
 class Name:

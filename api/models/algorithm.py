@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from pydantic.dataclasses import dataclass
 from dataclasses_json import dataclass_json
 
 @dataclass_json
@@ -19,15 +19,15 @@ class Algorithm:
 
     def __eq__(self, o: object) -> bool:
         return (
-            self.keyword_type_1 == o.keyword_1
-            and self.keyword_type_2 == o.keyword_2
+            self.keyword_type_1 == o.keyword_type_1
+            and self.keyword_type_2 == o.keyword_type_2
             and self.joint == o.joint
         )
 
     def __ne__(self, o: object) -> bool:
         return (
-            self.keyword_type_1 != o.keyword_1
-            and self.keyword_type_2 != o.keyword_2
+            self.keyword_type_1 != o.keyword_type_1
+            and self.keyword_type_2 != o.keyword_type_2
             and self.joint != o.joint
         )
 
