@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response, status
 from fastapi.params import Query
 
 from api.models.keyword import Keyword
@@ -25,3 +25,4 @@ async def add_keyword_to_blacklist(
 ):
     UserPreferenceMutations.upsert_keyword_in_blacklist(keyword)
     emitter.emit("new_words", identifier)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
