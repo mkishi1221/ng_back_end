@@ -3,6 +3,7 @@ from fastapi import FastAPI, WebSocket
 from fastapi.security import HTTPBearer
 import orjson as json
 from api.filter_keywords import filter_keywords
+from fastapi.middleware.cors import CORSMiddleware
 
 from api.models.keyword import Keyword
 from api.models.user_repository.mutations.user_preferences import (
@@ -20,12 +21,24 @@ from .routes import words_collector
 
 UserRepository.init_user()
 
+origins = [
+    "http://localhost",
+    "http://localhost:8080",
+]
+
 token_auth_scheme = HTTPBearer()
 app = FastAPI()
 app.include_router(words_collector.router)
 app.include_router(algorithm_collector.router)
 app.include_router(blacklist_collector.router)
 app.include_router(whitelist_collector.router)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 manager = ConnectionManager()
 
 

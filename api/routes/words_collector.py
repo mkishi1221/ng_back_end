@@ -52,3 +52,12 @@ async def add_keywords(
     emitter.emit("new_words", identifier)
 
     return keywords
+
+
+@router.get(
+    "/keywords",
+    response_model=List[Keyword],
+    response_description="A list of keywords with metadata",
+)
+async def get_keywords():
+    return UserPreferenceMutations.get_greylisted()
