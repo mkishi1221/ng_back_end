@@ -1,3 +1,4 @@
+from api.event_handler import ConnectionManager
 from ...user_repository.repository import UserRepository
 from typing import Union
 from ...user import User
@@ -11,9 +12,9 @@ class UserGeneralMutations(UserRepository):
         )
 
     @staticmethod
-    def change_user_pw(pw: str):
+    def change_user_pw(pw: str, identifier: str):
         return UserRepository.user_cache_db.command(
-            "updateUser", UserRepository.project_id, pwd=pw
+            "updateUser", ConnectionManager.get_user(identifier).project_id, pwd=pw
         )
 
     @staticmethod

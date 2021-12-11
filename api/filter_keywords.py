@@ -9,7 +9,7 @@ from .models.user_repository.mutations.user_preferences import UserPreferenceMut
 from .models.user_repository.repository import UserRepository
 
 
-def filter_keywords(keywords: List[Keyword]) -> List[Keyword]:
+def filter_keywords(keywords: List[Keyword], identifier: str) -> List[Keyword]:
     """
     Filter approved keywords (approved keywords may be the following):
     - Either a noun, verb, or an adjective
@@ -20,7 +20,7 @@ def filter_keywords(keywords: List[Keyword]) -> List[Keyword]:
     approved_pos = ["noun", "verb", "adjective"]
     illegal_char = re.compile(r"[^a-zA-Z]")
     
-    keyword_blacklist = UserPreferenceMutations.get_blacklisted()
+    keyword_blacklist = UserPreferenceMutations.get_blacklisted(identifier)
 
     # Create set of approved keywords, filtering by pos, "illegal_chars" and length
     approved_keywords = {

@@ -34,7 +34,7 @@ async def add_keywords(
         min_length=1,
     ),
     identifier: str = Query(
-        None, description="Websocket identifier of client (delivered at login)"
+        ..., description="Websocket identifier of client (delivered at login)"
     ),
 ):
     unique_lines = find_unique_lines(words)
@@ -42,12 +42,12 @@ async def add_keywords(
     keywords = extract_words_with_spacy(unique_lines)
     keywords = verify_words_with_wordsAPI(keywords)
     keywords = get_keyword_wiki_scores(keywords)
-    keywords = filter_keywords(keywords)
+    keywords = filter_keywords(keywords, identifier)
 
     keywords.sort(key=operator.attrgetter("keyword"))
     keywords.sort(key=operator.attrgetter("keyword_total_score"), reverse=True)
 
-    UserPreferenceMutations.upsert_multiple_keywords_in_greylist(keywords)
+    UserPreferenceMutations.upsert_multiple_keywords_in_greylist(keywords, identifier)
 
     emitter.emit("new_words", identifier)
 
@@ -59,5 +59,9 @@ async def add_keywords(
     response_model=List[Keyword],
     response_description="A list of keywords with metadata",
 )
-async def get_keywords():
-    return UserPreferenceMutations.get_greylisted()
+async def get_keywords(
+    identifier: str = Query(
+        ..., description="Websocket identifier of client (delivered at login)"
+    ),
+):
+    return UserPreferenceMutations.get_greylisted(identifier)

@@ -22,8 +22,12 @@ router = APIRouter(
     response_model=List[Algorithm],
     response_description="A list of algorithm objects",
 )
-async def get_algorithms():
-    return UserPreferenceMutations.get_algorithms()
+async def get_algorithms(
+    identifier: str = Query(
+        ..., description="Websocket identifier of client (delivered at login)"
+    ),
+):
+    return UserPreferenceMutations.get_algorithms(identifier)
 
 
 @router.put(
@@ -34,9 +38,9 @@ async def get_algorithms():
 async def add_algorithm(
     algorithm: Algorithm,
     identifier: str = Query(
-        None, description="Websocket identifier of client (delivered at login)"
+        ..., description="Websocket identifier of client (delivered at login)"
     ),
 ):
-    result = UserPreferenceMutations.upsert_algorithm(algorithm)
+    result = UserPreferenceMutations.upsert_algorithm(algorithm, identifier)
     emitter.emit("new_words", identifier)
     return result

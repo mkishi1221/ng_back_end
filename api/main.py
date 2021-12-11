@@ -5,21 +5,21 @@ import orjson as json
 from api.filter_keywords import filter_keywords
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.models.keyword import Keyword
 from api.models.user_repository.mutations.user_preferences import (
     UserPreferenceMutations,
 )
-from api.models.user_repository.repository import UserRepository
-from api.routes import algorithm_collector, blacklist_collector, whitelist_collector
+from api.routes import (
+    algorithm_collector,
+    blacklist_collector,
+    settings,
+    whitelist_collector,
+)
 from .event_handler import emitter, ConnectionManager
 import asyncio
 from .models.permanent_repository.repository import PermanentRepository
-from .models.algorithm import Algorithm
 from .combine_words import combine_words
 
 from .routes import words_collector
-
-UserRepository.init_user()
 
 origins = [
     "http://localhost",
@@ -32,6 +32,7 @@ app.include_router(words_collector.router)
 app.include_router(algorithm_collector.router)
 app.include_router(blacklist_collector.router)
 app.include_router(whitelist_collector.router)
+app.include_router(settings.router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -47,7 +48,7 @@ def send_names(identifier: str):
     verbs = []
     nouns = []
     adjectives = []
-    keywords = UserPreferenceMutations.get_greylisted()
+    keywords = UserPreferenceMutations.get_greylisted(identifier)
     for word in keywords:
         if word.wordsAPI_pos == "verb":
             verbs.append(word)
@@ -67,15 +68,23 @@ def send_names(identifier: str):
         "suffix": suffixes,
     }
 
-    algorithms = UserPreferenceMutations.get_algorithms()
+    algorithms = UserPreferenceMutations.get_algorithms(identifier)
 
     all_names = [
         name
         for alg in algorithms
         for name in combine_words(
-            filter_keywords(keyword_dict[alg.keyword_type_1]),
+            keyword_dict[alg.keyword_type_1]
+            if alg.keyword_type_1 == "prefix" or alg.keyword_type_1 == "suffix"
+            else filter_keywords(
+                keyword_dict[alg.keyword_type_1], identifier
+            ),  # filter only if type is not pre- or suffix
             alg.keyword_type_1,
-            filter_keywords(keyword_dict[alg.keyword_type_2]),
+            keyword_dict[alg.keyword_type_2]
+            if alg.keyword_type_2 == "prefix" or alg.keyword_type_2 == "suffix"
+            else filter_keywords(
+                keyword_dict[alg.keyword_type_2], identifier
+            ),  # filter only if type is not pre- or suffix
             alg.keyword_type_2,
             alg,
         )
@@ -87,18 +96,20 @@ def send_names(identifier: str):
     loop.create_task(
         manager.send(
             json.dumps(all_names, option=json.OPT_SERIALIZE_DATACLASS).decode("utf-8"),
+            "names",
             identifier,
         )
     )
 
 
 @app.websocket("/ws")
-async def name_distributor(websocket: WebSocket):
-    await manager.connect(websocket)
+async def name_distributor(websocket: WebSocket, name: str, project: str):
+    await manager.connect(websocket, name, project)
+    UserPreferenceMutations.set_last_project(name, project)
     try:
         while 1:
-            await websocket.send_text(
-                "keepalive"
+            await websocket.send_json(
+                {"type": "keepalive"}
             )  # keep the websocket connection alive
             await asyncio.sleep(30)
     except:

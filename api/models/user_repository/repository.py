@@ -7,17 +7,9 @@ import os
 class UserRepository:
 
     client: MongoClient = MongoClient(
-        f"mongodb://{quote_plus(os.environ['DB_USER'])}:{quote_plus(os.environ['DB_PASSWD'])}@199.231.189.38:27017/user_cache"
+        f"mongodb://{quote_plus(os.environ['DB_ADMIN_USER'])}:{quote_plus(os.environ['DB_ADMIN_PASSWD'])}@199.231.189.38:27017/admin"
     )
     user_cache_db = client["user_cache"]
-
-    try:
-        username = user_cache_db.command("connectionStatus")["authInfo"][
-            "authenticatedUsers"
-        ][0]["user"]
-    except OperationFailure:
-        print("Error: tried to call user repository without init_user call!")
-        exit()
 
     # collections
     project_collection = user_cache_db.get_collection("projects")
@@ -27,51 +19,61 @@ class UserRepository:
     profile_collection = user_cache_db.get_collection("profiles")
     pricing_collection = user_cache_db.get_collection("pricing")
 
-    # project config
-    project = os.environ["PROJECT_NAME"]
-    project_id = None
-
     @staticmethod
-    def add_project():
+    def add_project(username: str, project: str):
         UserRepository.project_collection.update_one(
-            {"project_name": UserRepository.project},
+            {"project_name": project},
             {
                 "$set": {
-                    "project_name": UserRepository.project,
-                    "users": [UserRepository.username],
+                    "project_name": project,
+                    "users": [username],
                 }
             },
             upsert=True,
         )
 
     @staticmethod
-    def init_user():
+    def add_profile(username: str):
+        UserRepository.profile_collection.update_one(
+            {"user": username},
+            {"$set": {"user": username, "last_project": ""}},
+            upsert=True,
+        )
 
-        # TODO: optimize the whole project setup once we are in a "real" api / frontend setting
+    @staticmethod
+    def init_user(username: str, project: str):
+
+        profile_obj = UserRepository.profile_collection.find_one({"user": username})
+
+        if not profile_obj:
+            UserRepository.add_profile(username)
+            profile_obj = UserRepository.profile_collection.find_one({"user": username})
+
         project_obj = UserRepository.project_collection.find_one(
-            {"project_name": UserRepository.project}
+            {"project_name": project, "users": {"$all": [username]}}
         )
         if not project_obj:
-            UserRepository.add_project()
+            UserRepository.add_project(username, project)
             project_obj = UserRepository.project_collection.find_one(
-                {"project_name": UserRepository.project}
+                {"project_name": project}
             )
-        UserRepository.project_id = project_obj["_id"]
 
         if not UserRepository.list_collection.find_one(
-            {"project_id": UserRepository.project_id}
+            {"project_id": project_obj["_id"]}
         ):
             UserRepository.list_collection.update_one(
-                {"project_id": UserRepository.project_id},
+                {"project_id": project_obj["_id"]},
                 {
                     "$set": {
-                        "project_id": UserRepository.project_id,
+                        "project_id": project_obj["_id"],
                         "black": [],
                         "grey": [],
                         "white": [],
                         "short": [],
-                        "algorithms": []
+                        "algorithms": [],
                     }
                 },
                 upsert=True,
             )
+
+        return project_obj["_id"]
