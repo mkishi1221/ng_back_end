@@ -285,37 +285,46 @@ class UserPreferenceMutations(UserRepository):
 
     # dev methods
     @staticmethod
-    def _drop_blacklist():
+    def _drop_blacklist(identifier: str):
         """
         Only use this method in a developer environment AND WHEN YOU'RE COMPLETELY SURE WHAT YOU ARE DOING!
         """
         UserRepository.list_collection.update_one(
-            {"project_id": UserRepository.project_id}, {"$set": {"black": []}}
+            {"project_id": ConnectionManager.get_user(identifier).project_id}, {"$set": {"black": []}}
         )
 
     @staticmethod
-    def _drop_greylist():
+    def _drop_greylist(identifier: str):
         """
         Only use this method in a developer environment AND WHEN YOU'RE COMPLETELY SURE WHAT YOU ARE DOING!
         """
         UserRepository.list_collection.update_one(
-            {"project_id": UserRepository.project_id}, {"$set": {"grey": []}}
+            {"project_id": ConnectionManager.get_user(identifier).project_id}, {"$set": {"grey": []}}
         )
 
     @staticmethod
-    def _drop_whitelist():
+    def _drop_whitelist(identifier: str):
         """
         Only use this method in a developer environment AND WHEN YOU'RE COMPLETELY SURE WHAT YOU ARE DOING!
         """
         UserRepository.list_collection.update_one(
-            {"project_id": UserRepository.project_id}, {"$set": {"white": []}}
+            {"project_id": ConnectionManager.get_user(identifier).project_id}, {"$set": {"white": []}}
         )
 
     @staticmethod
-    def _drop_shortlist():
+    def _drop_shortlist(identifier: str):
         """
         Only use this method in a developer environment AND WHEN YOU'RE COMPLETELY SURE WHAT YOU ARE DOING!
         """
         UserRepository.list_collection.update_one(
-            {"project_id": UserRepository.project_id}, {"$set": {"short": []}}
+            {"project_id": ConnectionManager.get_user(identifier).project_id}, {"$set": {"short": []}}
+        )
+
+    @staticmethod
+    def _drop_algorithms(identifier: str):
+        """
+        Only use this method in a developer environment AND WHEN YOU'RE COMPLETELY SURE WHAT YOU ARE DOING!
+        """
+        UserRepository.list_collection.update_one(
+            {"project_id": ConnectionManager.get_user(identifier).project_id}, {"$set": {"algorithms": []}}
         )
