@@ -24,6 +24,7 @@ from .routes import words_collector
 origins = [
     "http://localhost",
     "http://localhost:8080",
+    "http://199.231.189.38:8000"
 ]
 
 token_auth_scheme = HTTPBearer()
