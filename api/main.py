@@ -49,7 +49,7 @@ def send_names(identifier: str):
     verbs = []
     nouns = []
     adjectives = []
-    keywords = UserPreferenceMutations.get_whitelisted(identifier)
+    keywords = UserPreferenceMutations.get_greylisted(identifier)
     for word in keywords:
         if word.wordsAPI_pos == "verb":
             verbs.append(word)
