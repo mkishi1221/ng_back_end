@@ -16,6 +16,15 @@ router = APIRouter(
 )
 
 
+@router.get("/whitelist")
+async def get_whitelisted(
+    identifier: str = Query(
+        ..., description="Websocket identifier of client (delivered at login)"
+    ),
+):
+    return UserPreferenceMutations.get_whitelisted(identifier)
+
+
 @router.post("/whitelist")
 async def add_keyword_to_whitelist(
     keyword: Keyword,
