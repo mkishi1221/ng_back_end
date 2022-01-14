@@ -1,73 +1,73 @@
+import functools
 from .models.keyword import Keyword
 from .models.algorithm import Algorithm
 from .models.name import Name
+import itertools
 
 
-def combine_words(wordlist1: list[Keyword], wordlist_1_type: str, wordlist2: list[Keyword], wordlist_2_type: str, algorithm: Algorithm) -> list[Name]:
+def combine_words(keywords: dict, algorithm: Algorithm) -> list[Name]:
 
-    # Combine keywords from 2 keyword lists
-    joint = algorithm.joint
-    name_list: list[Name] = []
-    for keyword_1_dict in wordlist1:
-        if wordlist_1_type == 'prefix':
-            keyword_1 = keyword_1_dict["prefix"]
-            keyword_1_user_score = 'user: 2'
-            keyword_1_wiki_score = 'wiki: 0'
-            keyword_1_score = 2
-            keyword_1_origin = 'dictionary'
+    to_permutate = []
+
+    def score_word(word):
+        try:
+            return f"{word}_{word['keyword_total_score']}"
+        except KeyError:
+            try:
+                return f"{word['prefix']}_2"
+            except KeyError:
+                return f"{word['suffix']}_2"
+
+    for comp in algorithm.components:
+        if comp in keywords:
+            to_permutate.append(list(map(score_word, keywords[comp])))
         else:
-            keyword_1 = keyword_1_dict.keyword.title()
-            keyword_1_user_score = 'user: ' + str(keyword_1_dict.keyword_user_score)
-            keyword_1_wiki_score = 'wiki: ' + str(keyword_1_dict.keyword_wiki_score)
-            keyword_1_score = keyword_1_dict.keyword_total_score
-            keyword_1_origin = keyword_1_dict.origin
+            to_permutate.append([f"{comp}"])
 
-        for keyword_2_dict in wordlist2:
-            if wordlist_2_type == 'suffix':
-                keyword_2 = keyword_2_dict['suffix']
-                keyword_2_user_score = 'user: 2'
-                keyword_2_wiki_score = 'wiki: 0'
-                keyword_2_score = 2
-                keyword_2_origin = 'dictionary'
-            else:
-                keyword_2 = keyword_2_dict.keyword.title()
-                keyword_2_user_score = 'user: ' + str(keyword_2_dict.keyword_user_score)
-                keyword_2_wiki_score = 'wiki: ' + str(keyword_2_dict.keyword_wiki_score)
-                keyword_2_score = keyword_2_dict.keyword_total_score
-                keyword_2_origin = keyword_2_dict.origin
+    permutations = list(itertools.product(*to_permutate))
 
-            name = joint.join((keyword_1, keyword_2))
-            domain = name.lower() + ".com"
-            all_keywords = "| " + keyword_1 + " | " + keyword_2 + " |"
+    name_list: list[Name] = []
 
-            # Additional score based on length of name
+    def parse_keyword(word):
+        return word.split("_")[0]
+
+    def parse_score(word):
+        return int(word.split("_")[1])
+
+    for permutation in permutations:
+
+        individual_words = list(map(parse_keyword, permutation))
+        score_permutations = filter(lambda w: "_" in w, permutation)
+        scores = list(map(parse_score, score_permutations))
+
+        name = "".join(individual_words)
+
+        # Additional score based on length of name
+        name_length_score = 0
+        name_length = len(name)
+        if name_length <= 6:
+            name_length_score = 3
+        elif name_length <= 8:
+            name_length_score = 2
+        elif name_length <= 10:
+            name_length_score = 1
+        else:
             name_length_score = 0
-            name_length = len(name)
-            if name_length <= 6:
-                name_length_score = 3
-            elif name_length <= 8:
-                name_length_score = 2
-            elif name_length <= 10:
-                name_length_score = 1
-            else:
-                name_length_score = 0
 
-            name_score = int(keyword_1_score) + int(keyword_2_score) + int(name_length_score)
-            name_list.append(
-                Name(
-                    repr(algorithm),
-                    len(name),
-                    name,
-                    domain,
-                    all_keywords,
-                    (keyword_1, wordlist_1_type, keyword_1_user_score, keyword_1_wiki_score, keyword_1_origin),
-                    (keyword_2, wordlist_2_type, keyword_2_user_score, keyword_2_wiki_score, keyword_2_origin),
-                    keyword_1_score,
-                    keyword_2_score,
-                    name_length_score,
-                    name_score
-                )
+        name_score = (functools.reduce(lambda a, b: a + b, scores) / len(scores)) + int(
+            name_length_score
+        )
+
+        name_list.append(
+            Name(
+                name_length,
+                name,
+                individual_words,
+                scores,
+                name_length_score,
+                name_score,
             )
+        )
 
     # Filter out names that are more than 15 characters
     temp_set = {

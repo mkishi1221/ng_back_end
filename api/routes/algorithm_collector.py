@@ -44,3 +44,25 @@ async def add_algorithm(
     result = UserPreferenceMutations.upsert_algorithm(algorithm, identifier)
     emitter.emit("new_words", identifier)
     return result
+
+
+@router.delete("/algorithms/{id}")
+async def delete_algorithm(
+    id: str,
+    identifier: str = Query(
+        ..., description="Websocket identifier of client (delivered at login)"
+    ),
+):
+    result = UserPreferenceMutations.remove_from_algorithms(id, identifier)
+    emitter.emit("new_words", identifier)
+    return result
+
+
+@router.delete("/algorithms")
+async def delete_all_algorithms(
+    identifier: str = Query(
+        ..., description="Websocket identifier of client (delivered at login)"
+    ),
+):
+    result = UserPreferenceMutations._drop_algorithms(identifier)
+    return result

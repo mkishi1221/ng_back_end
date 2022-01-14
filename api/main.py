@@ -4,6 +4,7 @@ from fastapi.security import HTTPBearer
 import orjson as json
 from api.filter_keywords import filter_keywords
 from fastapi.middleware.cors import CORSMiddleware
+import functools
 
 from api.models.user_repository.mutations.user_preferences import (
     UserPreferenceMutations,
@@ -24,7 +25,7 @@ from .routes import words_collector
 origins = [
     "http://localhost",
     "http://localhost:8080",
-    "http://identitytobrand.com:3000"
+    "http://identitytobrand.com:3000",
 ]
 
 token_auth_scheme = HTTPBearer()
@@ -49,7 +50,7 @@ def send_names(identifier: str):
     verbs = []
     nouns = []
     adjectives = []
-    keywords = UserPreferenceMutations.get_greylisted(identifier)
+    keywords = UserPreferenceMutations.get_whitelisted(identifier)
     for word in keywords:
         if word.wordsAPI_pos == "verb":
             verbs.append(word)
@@ -62,9 +63,9 @@ def send_names(identifier: str):
     suffixes = [suffix_obj for suffix_obj in PermanentRepository.suffixes.find()]
 
     keyword_dict = {
-        "verb": verbs,
-        "noun": nouns,
-        "adjective": adjectives,
+        "verb": filter_keywords(verbs, identifier),
+        "noun": filter_keywords(nouns, identifier),
+        "adjective": filter_keywords(adjectives, identifier),
         "prefix": prefixes,
         "suffix": suffixes,
     }
@@ -74,21 +75,7 @@ def send_names(identifier: str):
     all_names = [
         name
         for alg in algorithms
-        for name in combine_words(
-            keyword_dict[alg.keyword_type_1]
-            if alg.keyword_type_1 == "prefix" or alg.keyword_type_1 == "suffix"
-            else filter_keywords(
-                keyword_dict[alg.keyword_type_1], identifier
-            ),  # filter only if type is not pre- or suffix
-            alg.keyword_type_1,
-            keyword_dict[alg.keyword_type_2]
-            if alg.keyword_type_2 == "prefix" or alg.keyword_type_2 == "suffix"
-            else filter_keywords(
-                keyword_dict[alg.keyword_type_2], identifier
-            ),  # filter only if type is not pre- or suffix
-            alg.keyword_type_2,
-            alg,
-        )
+        for name in combine_words(keyword_dict, alg)
     ]
 
     all_names = sorted(all_names, key=lambda k: (k.name_score * -1, k.name))

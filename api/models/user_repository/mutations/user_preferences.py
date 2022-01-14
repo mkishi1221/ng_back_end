@@ -281,6 +281,14 @@ class UserPreferenceMutations(UserRepository):
             {"$pull": {"short": {"keyword": keyword}}},
         )
 
+    ## algorithms
+    @staticmethod
+    def remove_from_algorithms(algorithmID: str, identifier: str):
+        UserRepository.list_collection.update_one(
+            {"project_id": ConnectionManager.get_user(identifier).project_id},
+            {"$pull": {"algorithms": {"id": algorithmID}}},
+        )
+
     # endregion
 
     # dev methods
