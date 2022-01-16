@@ -11,7 +11,7 @@ def combine_words(keywords: dict, algorithm: Algorithm) -> list[Name]:
 
     def score_word(word):
         try:
-            return f"{word}_{word['keyword_total_score']}"
+            return f"{word.keyword}_{word.keyword_total_score}"
         except KeyError:
             try:
                 return f"{word['prefix']}_2"
