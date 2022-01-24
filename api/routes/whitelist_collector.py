@@ -35,3 +35,15 @@ async def add_keyword_to_whitelist(
     UserPreferenceMutations.upsert_keyword_in_whitelist(keyword, identifier)
     emitter.emit("new_words", identifier)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+@router.delete("/whitelist")
+async def remove_keyword_from_whitelist(
+    keyword: Keyword,
+    identifier: str = Query(
+        ..., description="Websocket identifier of client (delivered at login)"
+    ),
+):
+    UserPreferenceMutations.remove_from_whitelist(keyword.keyword, identifier)
+    UserPreferenceMutations.upsert_keyword_in_greylist(keyword, identifier)
+    emitter.emit("new_words", identifier)
+    return keyword
