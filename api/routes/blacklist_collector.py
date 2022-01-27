@@ -15,6 +15,7 @@ router = APIRouter(
     responses={403: {"description": "Not authorized"}},
 )
 
+
 @router.get("/blacklist")
 async def get_blacklisted(
     identifier: str = Query(
@@ -36,14 +37,15 @@ async def add_keyword_to_blacklist(
     emitter.emit("new_words", identifier)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
-@router.delete("/blacklist")
+
+@router.delete("/blacklist/{id}")
 async def remove_keyword_from_blacklist(
-    keyword: Keyword,
+    id: str,
     identifier: str = Query(
         ..., description="Websocket identifier of client (delivered at login)"
     ),
 ):
-    UserPreferenceMutations.remove_from_blacklist(keyword.keyword, identifier)
-    UserPreferenceMutations.upsert_keyword_in_greylist(keyword, identifier)
+    UserPreferenceMutations.remove_from_blacklist(id, identifier)
+    # UserPreferenceMutations.upsert_keyword_in_greylist(keyword, identifier)
     emitter.emit("new_words", identifier)
-    return keyword
+    # return keyword

@@ -251,10 +251,10 @@ class UserPreferenceMutations(UserRepository):
     # region removers
     ## blacklist
     @staticmethod
-    def remove_from_blacklist(keyword: str, identifier: str):
+    def remove_from_blacklist(id: str, identifier: str):
         UserRepository.list_collection.update_one(
             {"project_id": ConnectionManager.get_user(identifier).project_id},
-            {"$pull": {"black": {"keyword": keyword}}},
+            {"$pull": {"black": {"id": id}}},
         )
 
     ## greylist

@@ -64,4 +64,6 @@ async def get_keywords(
         ..., description="Websocket identifier of client (delivered at login)"
     ),
 ):
-    return UserPreferenceMutations.get_greylisted(identifier)
+    words = UserPreferenceMutations.get_greylisted(identifier)
+    print(words)
+    return words

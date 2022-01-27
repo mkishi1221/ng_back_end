@@ -27,15 +27,13 @@ def create_keyword(word, word_pos, word_lemma) -> Keyword:
     keyword = re.sub(r"^\W+", "", word)
     keyword = re.sub(r"\W+$", "", keyword)
     res = Keyword(
-        word,
-        len(keyword),
-        keyword.lower(),
-        "sentences",
+        word=word,
+        keyword_len=len(keyword),
+        keyword=keyword.lower(),
+        origin="sentences",
         spacy_pos=word_pos,
         lemma=word_lemma,
     )
-    # fix for https://github.com/tiangolo/fastapi/issues/265
-    delattr(res, "__initialised__")
     return res
 
 
@@ -56,7 +54,11 @@ def extract_words_with_spacy(lines) -> List[Keyword]:
 
     unique_words = []
     for keyword in keywords:
-        if keyword.word != "" and keyword.keyword_len >= 1 and keyword not in unique_words:
+        if (
+            keyword.word != ""
+            and keyword.keyword_len >= 1
+            and keyword not in unique_words
+        ):
             unique_words.append(keyword)
 
     # Count occurrence of unique word
