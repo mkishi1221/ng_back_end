@@ -71,6 +71,12 @@ class UserRepository:
                         "white": [],
                         "short": [],
                         "algorithms": [],
+                        "tlds": [
+                            {"inUse": True, "tld": ".com"},
+                            {"inUse": True, "tld": ".co.uk"},
+                            {"inUse": True, "tld": ".org"},
+                            {"inUse": True, "tld": ".net"},
+                        ],
                     }
                 },
                 upsert=True,

@@ -4,7 +4,6 @@ from fastapi.security import HTTPBearer
 import orjson as json
 from api.filter_keywords import filter_keywords
 from fastapi.middleware.cors import CORSMiddleware
-import functools
 
 from api.models.user_repository.mutations.user_preferences import (
     UserPreferenceMutations,
@@ -14,13 +13,14 @@ from api.routes import (
     blacklist_collector,
     settings,
     whitelist_collector,
+    words_collector,
+    tld_collector,
 )
 from .event_handler import emitter, ConnectionManager
 import asyncio
 from .models.permanent_repository.repository import PermanentRepository
 from .combine_words import combine_words
 
-from .routes import words_collector
 
 origins = [
     "http://localhost",
@@ -29,11 +29,15 @@ origins = [
 ]
 
 token_auth_scheme = HTTPBearer()
-app = FastAPI()
+app = FastAPI(
+    title="identitytobrand lofi api",
+    version="0.0.1"
+)
 app.include_router(words_collector.router)
 app.include_router(algorithm_collector.router)
 app.include_router(blacklist_collector.router)
 app.include_router(whitelist_collector.router)
+app.include_router(tld_collector.router)
 app.include_router(settings.router)
 app.add_middleware(
     CORSMiddleware,
@@ -73,9 +77,7 @@ def send_names(identifier: str):
     algorithms = UserPreferenceMutations.get_algorithms(identifier)
 
     all_names = [
-        name
-        for alg in algorithms
-        for name in combine_words(keyword_dict, alg)
+        name for alg in algorithms for name in combine_words(keyword_dict, alg)
     ]
 
     all_names = sorted(all_names, key=lambda k: (k.name_score * -1, k.name))

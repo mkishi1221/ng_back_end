@@ -1,3 +1,4 @@
+import orjson as json
 from fastapi import APIRouter, Depends, Response, status
 from fastapi.params import Query
 
@@ -33,17 +34,21 @@ async def add_keyword_to_whitelist(
     ),
 ):
     UserPreferenceMutations.upsert_keyword_in_whitelist(keyword, identifier)
+    UserPreferenceMutations.remove_from_greylist(keyword.word, identifier)
     emitter.emit("new_words", identifier)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
-@router.delete("/whitelist")
+
+@router.delete("/whitelist/{word}")
 async def remove_keyword_from_whitelist(
-    keyword: Keyword,
+    word: str,
     identifier: str = Query(
         ..., description="Websocket identifier of client (delivered at login)"
     ),
 ):
-    UserPreferenceMutations.remove_from_whitelist(keyword.keyword, identifier)
-    UserPreferenceMutations.upsert_keyword_in_greylist(keyword, identifier)
+    removed = Keyword.schema().loads(
+        json.dumps(UserPreferenceMutations.remove_from_whitelist(word, identifier))
+    )
+    UserPreferenceMutations.upsert_keyword_in_greylist(removed, identifier)
     emitter.emit("new_words", identifier)
-    return keyword
+    return removed

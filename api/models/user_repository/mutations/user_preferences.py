@@ -1,5 +1,6 @@
 from api.event_handler import ConnectionManager
 from api.models.algorithm import Algorithm
+from api.models.tld import TLD
 from ...name import Name
 from ...keyword import Keyword
 from typing import List, Dict, Union
@@ -93,6 +94,21 @@ class UserPreferenceMutations(UserRepository):
         known_algorithms.append(algorithm)
         return known_algorithms
 
+    @staticmethod
+    def upsert_tld(tld: TLD, identifier: str):
+        """
+        Method to upsert tld in tld list of user
+        """
+        known_tlds = UserPreferenceMutations.get_tlds(identifier)
+        if tld in known_tlds:
+            return Response(status_code=status.HTTP_409_CONFLICT)
+        UserRepository.list_collection.update_one(
+            {"project_id": ConnectionManager.get_user(identifier).project_id},
+            {"$addToSet": {"tlds": tld.__dict__}},
+        )
+        known_tlds.append(tld)
+        return known_tlds
+
     ## blacklist
     @staticmethod
     def upsert_keyword_in_blacklist(keyword: Keyword, identifier: str):
@@ -181,6 +197,19 @@ class UserPreferenceMutations(UserRepository):
             many="True",
         )
 
+    ## tlds
+    @staticmethod
+    def get_tlds(identifier: str) -> List[TLD]:
+        """
+        Returns all algorithms in preference list of user
+        """
+        return TLD.schema().loads(
+            json.dumps(
+                UserPreferenceMutations.user_specific_preference_list(identifier)["tlds"]
+            ),
+            many="True",
+        )
+
     ## blacklist
     @staticmethod
     def get_blacklisted(identifier: str) -> List[Keyword]:
@@ -251,34 +280,40 @@ class UserPreferenceMutations(UserRepository):
     # region removers
     ## blacklist
     @staticmethod
-    def remove_from_blacklist(id: str, identifier: str):
+    def remove_from_blacklist(word: str, identifier: str):
+        removed = filter(lambda keyword: keyword["word"] == word, UserPreferenceMutations.user_specific_preference_list(identifier)["black"])
         UserRepository.list_collection.update_one(
             {"project_id": ConnectionManager.get_user(identifier).project_id},
-            {"$pull": {"black": {"id": id}}},
+            {"$pull": {"black": {"word": word}}},
         )
+        return next(removed)
 
     ## greylist
     @staticmethod
-    def remove_from_greylist(keyword: str, identifier: str):
+    def remove_from_greylist(word: str, identifier: str):
+        removed = filter(lambda keyword: keyword["word"] == word, UserPreferenceMutations.user_specific_preference_list(identifier)["grey"])
         UserRepository.list_collection.update_one(
             {"project_id": ConnectionManager.get_user(identifier).project_id},
-            {"$pull": {"grey": {"keyword": keyword}}},
+            {"$pull": {"grey": {"word": word}}},
         )
+        return next(removed)
 
     ## whitelist
     @staticmethod
-    def remove_from_whitelist(keyword: str, identifier: str):
+    def remove_from_whitelist(word: str, identifier: str):
+        removed = filter(lambda keyword: keyword["word"] == word, UserPreferenceMutations.user_specific_preference_list(identifier)["white"])
         UserRepository.list_collection.update_one(
             {"project_id": ConnectionManager.get_user(identifier).project_id},
-            {"$pull": {"white": {"keyword": keyword}}},
+            {"$pull": {"white": {"word": word}}},
         )
+        return next(removed)
 
     ## shortlist
     @staticmethod
-    def remove_from_shortlist(keyword: str, identifier: str):
+    def remove_from_shortlist(word: str, identifier: str):
         UserRepository.list_collection.update_one(
             {"project_id": ConnectionManager.get_user(identifier).project_id},
-            {"$pull": {"short": {"keyword": keyword}}},
+            {"$pull": {"short": {"word": word}}},
         )
 
     ## algorithms
@@ -287,6 +322,14 @@ class UserPreferenceMutations(UserRepository):
         UserRepository.list_collection.update_one(
             {"project_id": ConnectionManager.get_user(identifier).project_id},
             {"$pull": {"algorithms": {"id": algorithmID}}},
+        )
+
+    ## tlds
+    @staticmethod
+    def remove_from_tlds(tld: str, identifier: str):
+        UserRepository.list_collection.update_one(
+            {"project_id": ConnectionManager.get_user(identifier).project_id},
+            {"$pull": {"tlds": {"tld": tld}}},
         )
 
     # endregion

@@ -1,8 +1,10 @@
+from typing import List
 import orjson as json
 from fastapi import APIRouter, Depends, Response, status
 from fastapi.params import Query
 
 from api.models.keyword import Keyword
+from api.models.tld import TLD
 from ..dependencies import require_auth_token
 from api.models.user_repository.mutations.user_preferences import (
     UserPreferenceMutations,
@@ -17,36 +19,38 @@ router = APIRouter(
 )
 
 
-@router.get("/blacklist")
-async def get_blacklisted(
+@router.get("/tlds")
+async def get_tlds(
     identifier: str = Query(
         ..., description="Websocket identifier of client (delivered at login)"
     ),
 ):
-    return UserPreferenceMutations.get_blacklisted(identifier)
+    return UserPreferenceMutations.get_tlds(identifier)
 
 
-@router.post("/blacklist")
-async def add_keyword_to_blacklist(
-    keyword: Keyword,
+@router.put(
+    "/tlds",
+    response_model=List[TLD],
+    response_description="A list of algorithm objects",
+)
+async def add_tld(
+    tld: TLD,
     identifier: str = Query(
         ..., description="Websocket identifier of client (delivered at login)"
     ),
 ):
-    UserPreferenceMutations.upsert_keyword_in_blacklist(keyword, identifier)
-    UserPreferenceMutations.remove_from_greylist(keyword.word, identifier)
-    emitter.emit("new_words", identifier)
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+    result = UserPreferenceMutations.upsert_tld(tld, identifier)
+    return result
 
 
-@router.delete("/blacklist/{word}")
-async def remove_keyword_from_blacklist(
-    word: str,
+@router.delete("/tld/{tld}")
+async def remove_tld(
+    tld: str,
     identifier: str = Query(
         ..., description="Websocket identifier of client (delivered at login)"
     ),
 ):
-    removed = Keyword.schema().loads(json.dumps(UserPreferenceMutations.remove_from_blacklist(word, identifier)))
-    UserPreferenceMutations.upsert_keyword_in_greylist(removed, identifier)
-    emitter.emit("new_words", identifier)
-    return word
+    removed = TLD.schema().loads(
+        json.dumps(UserPreferenceMutations.remove_from_tlds(tld, identifier))
+    )
+    return removed

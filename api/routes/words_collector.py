@@ -65,5 +65,4 @@ async def get_keywords(
     ),
 ):
     words = UserPreferenceMutations.get_greylisted(identifier)
-    print(words)
     return words
