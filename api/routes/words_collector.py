@@ -49,7 +49,7 @@ async def add_keywords(
 
     UserPreferenceMutations.upsert_multiple_keywords_in_greylist(keywords, identifier)
 
-    emitter.emit("new_words", identifier)
+    emitter.emit("generate_names", identifier)
 
     return keywords
 

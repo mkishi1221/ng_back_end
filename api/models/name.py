@@ -12,6 +12,7 @@ class Name:
     keyword_scores: list[int]
     name_length_score: int
     name_score: int
+    available: bool = False
 
     def __eq__(self, o: object) -> bool:
         return self.name == o.name

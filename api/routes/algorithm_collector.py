@@ -42,7 +42,7 @@ async def add_algorithm(
     ),
 ):
     result = UserPreferenceMutations.upsert_algorithm(algorithm, identifier)
-    emitter.emit("new_words", identifier)
+    emitter.emit("generate_names", identifier)
     return result
 
 
@@ -54,7 +54,7 @@ async def delete_algorithm(
     ),
 ):
     result = UserPreferenceMutations.remove_from_algorithms(id, identifier)
-    emitter.emit("new_words", identifier)
+    emitter.emit("generate_names", identifier)
     return result
 
 

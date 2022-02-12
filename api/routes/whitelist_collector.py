@@ -35,7 +35,7 @@ async def add_keyword_to_whitelist(
 ):
     UserPreferenceMutations.upsert_keyword_in_whitelist(keyword, identifier)
     UserPreferenceMutations.remove_from_greylist(keyword.word, identifier)
-    emitter.emit("new_words", identifier)
+    emitter.emit("generate_names", identifier)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -50,5 +50,5 @@ async def remove_keyword_from_whitelist(
         json.dumps(UserPreferenceMutations.remove_from_whitelist(word, identifier))
     )
     UserPreferenceMutations.upsert_keyword_in_greylist(removed, identifier)
-    emitter.emit("new_words", identifier)
+    emitter.emit("generate_names", identifier)
     return removed

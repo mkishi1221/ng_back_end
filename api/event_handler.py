@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 import hashlib
 from typing import Dict, Tuple
@@ -29,6 +30,7 @@ class ConnectionManager:
         project_id = UserRepository.init_user(name, project)
         ConnectionManager.active_connections.update({identifier: (User(name, project, project_id), websocket)})
         await websocket.send_json({"type": "id", "content": identifier})
+        emitter.emit("generate_names", identifier) # generate names and send to client
 
     @staticmethod
     def get_user(identifier: str) -> User:

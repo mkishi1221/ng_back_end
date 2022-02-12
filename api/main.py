@@ -1,4 +1,3 @@
-from typing import Dict, List
 from fastapi import FastAPI, WebSocket
 from fastapi.security import HTTPBearer
 import orjson as json
@@ -20,6 +19,8 @@ from .event_handler import emitter, ConnectionManager
 import asyncio
 from .models.permanent_repository.repository import PermanentRepository
 from .combine_words import combine_words
+import aiohttp
+import copy
 
 
 origins = [
@@ -29,10 +30,7 @@ origins = [
 ]
 
 token_auth_scheme = HTTPBearer()
-app = FastAPI(
-    title="identitytobrand lofi api",
-    version="0.0.1"
-)
+app = FastAPI(title="identitytobrand lofi api", version="0.0.1")
 app.include_router(words_collector.router)
 app.include_router(algorithm_collector.router)
 app.include_router(blacklist_collector.router)
@@ -49,7 +47,38 @@ app.add_middleware(
 manager = ConnectionManager()
 
 
-@emitter.on("new_words")
+def merge_availabilities(domain, availability):
+    domain.available = availability
+    return domain
+
+
+async def create_domains(domains, identifier):
+    async with aiohttp.ClientSession() as session:
+        async with session.post(
+            "https://api.godaddy.com/v1/domains/available?checkType=FULL",
+            json=list(map(lambda d: d.name, domains)),
+            headers={
+                "authorization": "sso-key dLDKcLmoPp7m_6NPFNwrzL37ZuUqeK1QZ8S:UAhhomshJZaoVedg6VMqmS"
+            },
+        ) as resp:
+            jsonResp = await resp.json()
+            availabilities = [a["available"] for a in jsonResp["domains"]]
+
+            domains = [
+                merge_availabilities(domain, availabilities[i])
+                for i, domain in enumerate(domains)
+            ]
+
+            await manager.send(
+                json.dumps(domains, option=json.OPT_SERIALIZE_DATACLASS).decode(
+                    "utf-8"
+                ),
+                "names",
+                identifier,
+            )
+
+
+@emitter.on("generate_names")
 def send_names(identifier: str):
     verbs = []
     nouns = []
@@ -65,6 +94,7 @@ def send_names(identifier: str):
 
     prefixes = [prefix_obj for prefix_obj in PermanentRepository.prefixes.find()]
     suffixes = [suffix_obj for suffix_obj in PermanentRepository.suffixes.find()]
+    tlds = [tld for tld in UserPreferenceMutations.get_tlds(identifier)]
 
     keyword_dict = {
         "verb": filter_keywords(verbs, identifier),
@@ -82,14 +112,15 @@ def send_names(identifier: str):
 
     all_names = sorted(all_names, key=lambda k: (k.name_score * -1, k.name))
 
+    def domainify(name, tld):
+        n = copy.copy(name)
+        n.name = f"{name.name}{tld}"
+        return n
+
+    domains = [domainify(name, tld) for name in all_names for tld in tlds]
+
     loop = asyncio.get_event_loop()
-    loop.create_task(
-        manager.send(
-            json.dumps(all_names, option=json.OPT_SERIALIZE_DATACLASS).decode("utf-8"),
-            "names",
-            identifier,
-        )
-    )
+    loop.create_task(create_domains(domains, identifier))
 
 
 @app.websocket("/ws")
