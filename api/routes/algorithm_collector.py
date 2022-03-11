@@ -1,14 +1,14 @@
+import asyncio
 from typing import List
 from fastapi import APIRouter, Depends
 from fastapi.params import Query
 
+from api.event_handler import emitter
 from ..dependencies import require_auth_token
 from api.models.algorithm import Algorithm
 from api.models.user_repository.mutations.user_preferences import (
     UserPreferenceMutations,
 )
-from ..event_handler import emitter
-
 
 router = APIRouter(
     tags=["algorithms"],
@@ -27,7 +27,7 @@ async def get_algorithms(
         ..., description="Websocket identifier of client (delivered at login)"
     ),
 ):
-    return UserPreferenceMutations.get_algorithms(identifier)
+    return await UserPreferenceMutations.get_algorithms(identifier)
 
 
 @router.put(
@@ -41,7 +41,7 @@ async def add_algorithm(
         ..., description="Websocket identifier of client (delivered at login)"
     ),
 ):
-    result = UserPreferenceMutations.upsert_algorithm(algorithm, identifier)
+    result = await UserPreferenceMutations.upsert_algorithm(algorithm, identifier)
     emitter.emit("generate_names", identifier)
     return result
 
@@ -53,7 +53,8 @@ async def delete_algorithm(
         ..., description="Websocket identifier of client (delivered at login)"
     ),
 ):
-    result = UserPreferenceMutations.remove_from_algorithms(id, identifier)
+    result = await UserPreferenceMutations.remove_from_algorithms(id, identifier)
+    loop = asyncio.get_event_loop()
     emitter.emit("generate_names", identifier)
     return result
 
@@ -64,5 +65,5 @@ async def delete_all_algorithms(
         ..., description="Websocket identifier of client (delivered at login)"
     ),
 ):
-    result = UserPreferenceMutations._drop_algorithms(identifier)
+    result = await UserPreferenceMutations._drop_algorithms(identifier)
     return result

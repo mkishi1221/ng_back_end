@@ -2,13 +2,12 @@ import orjson as json
 from fastapi import APIRouter, Depends, Response, status
 from fastapi.params import Query
 
+from api.event_handler import emitter
 from api.models.keyword import Keyword
 from ..dependencies import require_auth_token
 from api.models.user_repository.mutations.user_preferences import (
     UserPreferenceMutations,
 )
-from ..event_handler import emitter
-
 
 router = APIRouter(
     tags=["preferences"],
@@ -23,7 +22,7 @@ async def get_blacklisted(
         ..., description="Websocket identifier of client (delivered at login)"
     ),
 ):
-    return UserPreferenceMutations.get_blacklisted(identifier)
+    return await UserPreferenceMutations.get_blacklisted(identifier)
 
 
 @router.post("/blacklist")
@@ -33,8 +32,8 @@ async def add_keyword_to_blacklist(
         ..., description="Websocket identifier of client (delivered at login)"
     ),
 ):
-    UserPreferenceMutations.upsert_keyword_in_blacklist(keyword, identifier)
-    UserPreferenceMutations.remove_from_greylist(keyword.word, identifier)
+    await UserPreferenceMutations.upsert_keyword_in_blacklist(keyword, identifier)
+    await UserPreferenceMutations.remove_from_greylist(keyword.word, identifier)
     emitter.emit("generate_names", identifier)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -47,6 +46,6 @@ async def remove_keyword_from_blacklist(
     ),
 ):
     removed = Keyword.schema().loads(json.dumps(UserPreferenceMutations.remove_from_blacklist(word, identifier)))
-    UserPreferenceMutations.upsert_keyword_in_greylist(removed, identifier)
+    await UserPreferenceMutations.upsert_keyword_in_greylist(removed, identifier)
     emitter.emit("generate_names", identifier)
     return word

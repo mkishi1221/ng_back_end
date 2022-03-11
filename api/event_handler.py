@@ -1,4 +1,3 @@
-import asyncio
 from datetime import datetime
 import hashlib
 from typing import Dict, Tuple
@@ -37,11 +36,9 @@ class ConnectionManager:
         return ConnectionManager.active_connections[identifier][0]
 
     def disconnect(self, websocket: WebSocket):
-        socket_to_remove = ""
-        for connection in self.active_connections:
-            if self.active_connections[connection] == websocket:
-                socket_to_remove = connection
-        self.active_connections.pop(socket_to_remove)
+        socket_to_remove = list(self.active_connections.values()).index(websocket)
+        if socket_to_remove:
+            self.active_connections.pop(socket_to_remove)
 
     async def send(self, message, type: str, identifier: str):
         await self.active_connections[identifier][1].send_json(
