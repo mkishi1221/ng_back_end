@@ -18,7 +18,7 @@ class UserPreferenceMutations(UserRepository):
 
     # region upserts
     @staticmethod
-    def _upsert_keyword_in_list(
+    async def _upsert_keyword_in_list(
         list_entry: Union[Keyword, Name], list_id: str, identifier: str
     ):
         """
@@ -73,14 +73,14 @@ class UserPreferenceMutations(UserRepository):
             )
 
     @staticmethod
-    def set_last_project(user: str, project_name: str):
+    async def set_last_project(user: str, project_name: str):
         UserRepository.profile_collection.update_one(
             {"user": user}, {"$set": {"last_project": project_name}}
         )
 
     ## algorithms
     @staticmethod
-    def upsert_algorithm(algorithm: Algorithm, identifier: str):
+    async def upsert_algorithm(algorithm: Algorithm, identifier: str):
         """
         Method to upsert keyword in algorithm list of user
         """
@@ -95,7 +95,7 @@ class UserPreferenceMutations(UserRepository):
         return known_algorithms
 
     @staticmethod
-    def upsert_tld(tld: TLD, identifier: str):
+    async def upsert_tld(tld: TLD, identifier: str):
         """
         Method to upsert tld in tld list of user
         """
@@ -111,74 +111,74 @@ class UserPreferenceMutations(UserRepository):
 
     ## blacklist
     @staticmethod
-    def upsert_keyword_in_blacklist(keyword: Keyword, identifier: str):
+    async def upsert_keyword_in_blacklist(keyword: Keyword, identifier: str):
         """
         Method to upsert keyword in blacklist of user; uses _upsert_keyword_in_list
         """
-        return UserPreferenceMutations._upsert_keyword_in_list(keyword, "black", identifier)
+        return await UserPreferenceMutations._upsert_keyword_in_list(keyword, "black", identifier)
 
     @staticmethod
-    def upsert_multiple_keywords_in_blacklist(keywords: List[Keyword], identifier: str):
+    async def upsert_multiple_keywords_in_blacklist(keywords: List[Keyword], identifier: str):
         """
         Method to upsert multiple keywords in blacklist of user; uses _upsert_keyword_in_list
         """
         res = None
         for keyword in keywords:
-            res = UserPreferenceMutations._upsert_keyword_in_list(keyword, "black", identifier)
+            res = await UserPreferenceMutations._upsert_keyword_in_list(keyword, "black", identifier)
         return res
 
     ## greylist
     @staticmethod
-    def upsert_keyword_in_greylist(keyword: Keyword, identifier: str):
+    async def upsert_keyword_in_greylist(keyword: Keyword, identifier: str):
         """
         Method to upsert keyword in greylist of user; uses _upsert_keyword_in_list
         """
-        return UserPreferenceMutations._upsert_keyword_in_list(keyword, "grey", identifier)
+        return await UserPreferenceMutations._upsert_keyword_in_list(keyword, "grey", identifier)
 
     @staticmethod
-    def upsert_multiple_keywords_in_greylist(keywords: List[Keyword], identifier: str):
+    async def upsert_multiple_keywords_in_greylist(keywords: List[Keyword], identifier: str):
         """
         Method to upsert multiple keywords in greylist of user; uses _upsert_keyword_in_list
         """
         res = None
         for keyword in keywords:
-            res = UserPreferenceMutations._upsert_keyword_in_list(keyword, "grey", identifier)
+            res = await UserPreferenceMutations._upsert_keyword_in_list(keyword, "grey", identifier)
         return res
 
     ## whitelist
     @staticmethod
-    def upsert_keyword_in_whitelist(keyword: Keyword, identifier: str):
+    async def upsert_keyword_in_whitelist(keyword: Keyword, identifier: str):
         """
         Method to upsert keyword in whitelist of user; uses _upsert_keyword_in_list
         """
-        return UserPreferenceMutations._upsert_keyword_in_list(keyword, "white", identifier)
+        return await UserPreferenceMutations._upsert_keyword_in_list(keyword, "white", identifier)
 
     @staticmethod
-    def upsert_multiple_keywords_in_whitelist(keywords: List[Keyword], identifier: str):
+    async def upsert_multiple_keywords_in_whitelist(keywords: List[Keyword], identifier: str):
         """
         Method to upsert multiple keywords in whitelist of user; uses _upsert_keyword_in_list
         """
         res = None
         for keyword in keywords:
-            res = UserPreferenceMutations._upsert_keyword_in_list(keyword, "white", identifier)
+            res = await UserPreferenceMutations._upsert_keyword_in_list(keyword, "white", identifier)
         return res
 
     ## shortlist
     @staticmethod
-    def upsert_keyword_in_shortlist(keyword: Name, identifier: str):
+    async def upsert_keyword_in_shortlist(keyword: Name, identifier: str):
         """
         Method to upsert keyword in shortlist of user; uses _upsert_keyword_in_list
         """
-        return UserPreferenceMutations._upsert_keyword_in_list(keyword, "short", identifier)
+        return await UserPreferenceMutations._upsert_keyword_in_list(keyword, "short", identifier)
 
     @staticmethod
-    def upsert_multiple_keywords_in_shortlist(keywords: List[Name], identifier: str):
+    async def upsert_multiple_keywords_in_shortlist(keywords: List[Name], identifier: str):
         """
         Method to upsert multiple keywords in shortlist of user; uses _upsert_keyword_in_list
         """
         res = None
         for keyword in keywords:
-            res = UserPreferenceMutations._upsert_keyword_in_list(keyword, "short", identifier)
+            res = await UserPreferenceMutations._upsert_keyword_in_list(keyword, "short", identifier)
         return res
 
     # endregion
@@ -186,7 +186,7 @@ class UserPreferenceMutations(UserRepository):
     # region getters
     ## algorithms
     @staticmethod
-    def get_algorithms(identifier: str) -> List[Algorithm]:
+    async def get_algorithms(identifier: str) -> List[Algorithm]:
         """
         Returns all algorithms in preference list of user
         """
@@ -199,7 +199,7 @@ class UserPreferenceMutations(UserRepository):
 
     ## tlds
     @staticmethod
-    def get_tlds(identifier: str) -> List[TLD]:
+    async def get_tlds(identifier: str) -> List[TLD]:
         """
         Returns all algorithms in preference list of user
         """
@@ -212,7 +212,7 @@ class UserPreferenceMutations(UserRepository):
 
     ## blacklist
     @staticmethod
-    def get_blacklisted(identifier: str) -> List[Keyword]:
+    async def get_blacklisted(identifier: str) -> List[Keyword]:
         """
         Returns all keywords in the blacklist of current user
         """
@@ -225,7 +225,7 @@ class UserPreferenceMutations(UserRepository):
 
     ## greylist
     @staticmethod
-    def get_greylisted(identifier: str) -> List[Keyword]:
+    async def get_greylisted(identifier: str) -> List[Keyword]:
         """
         Returns all keywords in the greylist of current user
         """
@@ -236,7 +236,7 @@ class UserPreferenceMutations(UserRepository):
 
     ## whitelist
     @staticmethod
-    def get_whitelisted(identifier: str) -> List[Keyword]:
+    async def get_whitelisted(identifier: str) -> List[Keyword]:
         """
         Returns all keywords in the whitelist of current user
         """
@@ -249,7 +249,7 @@ class UserPreferenceMutations(UserRepository):
 
     ## shortlist
     @staticmethod
-    def get_shortlisted(identifier: str) -> List[Name]:
+    async def get_shortlisted(identifier: str) -> List[Name]:
         """
         Returns all names in the shortlist of current user
         """
@@ -265,7 +265,7 @@ class UserPreferenceMutations(UserRepository):
 
     # settings
     @staticmethod
-    def get_profile(user: str):
+    async def get_profile(user: str):
         """
         Returns settings of user
         """
@@ -280,7 +280,7 @@ class UserPreferenceMutations(UserRepository):
     # region removers
     ## blacklist
     @staticmethod
-    def remove_from_blacklist(word: str, identifier: str):
+    async def remove_from_blacklist(word: str, identifier: str):
         removed = filter(lambda keyword: keyword["word"] == word, UserPreferenceMutations.user_specific_preference_list(identifier)["black"])
         UserRepository.list_collection.update_one(
             {"project_id": ConnectionManager.get_user(identifier).project_id},
@@ -290,7 +290,7 @@ class UserPreferenceMutations(UserRepository):
 
     ## greylist
     @staticmethod
-    def remove_from_greylist(word: str, identifier: str):
+    async def remove_from_greylist(word: str, identifier: str):
         removed = filter(lambda keyword: keyword["word"] == word, UserPreferenceMutations.user_specific_preference_list(identifier)["grey"])
         UserRepository.list_collection.update_one(
             {"project_id": ConnectionManager.get_user(identifier).project_id},
@@ -300,7 +300,7 @@ class UserPreferenceMutations(UserRepository):
 
     ## whitelist
     @staticmethod
-    def remove_from_whitelist(word: str, identifier: str):
+    async def remove_from_whitelist(word: str, identifier: str):
         removed = filter(lambda keyword: keyword["word"] == word, UserPreferenceMutations.user_specific_preference_list(identifier)["white"])
         UserRepository.list_collection.update_one(
             {"project_id": ConnectionManager.get_user(identifier).project_id},
@@ -310,7 +310,7 @@ class UserPreferenceMutations(UserRepository):
 
     ## shortlist
     @staticmethod
-    def remove_from_shortlist(word: str, identifier: str):
+    async def remove_from_shortlist(word: str, identifier: str):
         UserRepository.list_collection.update_one(
             {"project_id": ConnectionManager.get_user(identifier).project_id},
             {"$pull": {"short": {"word": word}}},
@@ -318,7 +318,7 @@ class UserPreferenceMutations(UserRepository):
 
     ## algorithms
     @staticmethod
-    def remove_from_algorithms(algorithmID: str, identifier: str):
+    async def remove_from_algorithms(algorithmID: str, identifier: str):
         UserRepository.list_collection.update_one(
             {"project_id": ConnectionManager.get_user(identifier).project_id},
             {"$pull": {"algorithms": {"id": algorithmID}}},
@@ -326,7 +326,7 @@ class UserPreferenceMutations(UserRepository):
 
     ## tlds
     @staticmethod
-    def remove_from_tlds(tld: str, identifier: str):
+    async def remove_from_tlds(tld: str, identifier: str):
         UserRepository.list_collection.update_one(
             {"project_id": ConnectionManager.get_user(identifier).project_id},
             {"$pull": {"tlds": {"tld": tld}}},
@@ -336,7 +336,7 @@ class UserPreferenceMutations(UserRepository):
 
     # dev methods
     @staticmethod
-    def _drop_blacklist(identifier: str):
+    async def _drop_blacklist(identifier: str):
         """
         Only use this method in a developer environment AND WHEN YOU'RE COMPLETELY SURE WHAT YOU ARE DOING!
         """
@@ -345,7 +345,7 @@ class UserPreferenceMutations(UserRepository):
         )
 
     @staticmethod
-    def _drop_greylist(identifier: str):
+    async def _drop_greylist(identifier: str):
         """
         Only use this method in a developer environment AND WHEN YOU'RE COMPLETELY SURE WHAT YOU ARE DOING!
         """
@@ -354,7 +354,7 @@ class UserPreferenceMutations(UserRepository):
         )
 
     @staticmethod
-    def _drop_whitelist(identifier: str):
+    async def _drop_whitelist(identifier: str):
         """
         Only use this method in a developer environment AND WHEN YOU'RE COMPLETELY SURE WHAT YOU ARE DOING!
         """
@@ -363,7 +363,7 @@ class UserPreferenceMutations(UserRepository):
         )
 
     @staticmethod
-    def _drop_shortlist(identifier: str):
+    async def _drop_shortlist(identifier: str):
         """
         Only use this method in a developer environment AND WHEN YOU'RE COMPLETELY SURE WHAT YOU ARE DOING!
         """
@@ -372,7 +372,7 @@ class UserPreferenceMutations(UserRepository):
         )
 
     @staticmethod
-    def _drop_algorithms(identifier: str):
+    async def _drop_algorithms(identifier: str):
         """
         Only use this method in a developer environment AND WHEN YOU'RE COMPLETELY SURE WHAT YOU ARE DOING!
         """

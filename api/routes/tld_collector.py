@@ -9,8 +9,6 @@ from ..dependencies import require_auth_token
 from api.models.user_repository.mutations.user_preferences import (
     UserPreferenceMutations,
 )
-from ..event_handler import emitter
-
 
 router = APIRouter(
     tags=["preferences"],
@@ -25,7 +23,7 @@ async def get_tlds(
         ..., description="Websocket identifier of client (delivered at login)"
     ),
 ):
-    return UserPreferenceMutations.get_tlds(identifier)
+    return await UserPreferenceMutations.get_tlds(identifier)
 
 
 @router.put(
@@ -39,7 +37,7 @@ async def add_tld(
         ..., description="Websocket identifier of client (delivered at login)"
     ),
 ):
-    result = UserPreferenceMutations.upsert_tld(tld, identifier)
+    result = await UserPreferenceMutations.upsert_tld(tld, identifier)
     return result
 
 
@@ -51,6 +49,6 @@ async def remove_tld(
     ),
 ):
     removed = TLD.schema().loads(
-        json.dumps(UserPreferenceMutations.remove_from_tlds(tld, identifier))
+        json.dumps(await UserPreferenceMutations.remove_from_tlds(tld, identifier))
     )
     return removed
